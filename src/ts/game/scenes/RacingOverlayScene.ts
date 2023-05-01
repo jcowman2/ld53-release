@@ -13,7 +13,6 @@ import {
     MATERIALS,
     MaterialCode,
     SPELLS,
-    SpellData,
     SpellType
 } from "../ui/spells/SpellData";
 import SpellcastDetails from "../ui/spells/SpellcastDetails";
@@ -31,16 +30,11 @@ const MATERIAL_ROW_GUTTER_X = 80;
 
 export default class RacingOverlayScene extends Scene {
     order: [MaterialCode, MaterialCode];
-    distanceToGoalText: GameObjects.Text | null = null;
+    distanceToGoalText: GameObjects.Text | null;
     selectedSpell: SpellIcon | null = null;
-    spellcastDetails: SpellcastDetails | null = null;
+    spellcastDetails: SpellcastDetails | null;
 
-    materialCounts = {
-        D: 12,
-        W: 12,
-        L: 12,
-        B: 12
-    };
+    materialCounts: Record<MaterialCode, number>;
     materialTrayRows: Record<MaterialCode, MaterialRow>;
 
     constructor() {
@@ -51,6 +45,12 @@ export default class RacingOverlayScene extends Scene {
 
     create(order: [MaterialCode, MaterialCode]) {
         this.order = order;
+        this.materialCounts = {
+            D: 12,
+            W: 12,
+            L: 12,
+            B: 12
+        };
 
         this._drawSpellTray();
         this._drawMaterialsTray();
@@ -70,7 +70,7 @@ export default class RacingOverlayScene extends Scene {
                         return;
                     }
 
-                    const text = `${Math.floor(distanceToGoal * 0.3)}m to go`;
+                    const text = `${Math.floor(distanceToGoal / 60)}m to go`;
                     if (this.distanceToGoalText == null) {
                         this.distanceToGoalText = this.add.text(
                             SCREEN_WIDTH - 200,
@@ -90,6 +90,10 @@ export default class RacingOverlayScene extends Scene {
                 }
             }
         );
+
+        this.events.once("shutdown", () => {
+            this.events.removeAllListeners("distancesUpdate");
+        });
     }
 
     update() {}
@@ -270,6 +274,10 @@ export default class RacingOverlayScene extends Scene {
     };
 
     _onPlayerReachGoal = (npcDistancesToGoal: number[]) => {
+        if (this.distanceToGoalText != null) {
+            this.distanceToGoalText.destroy();
+            this.distanceToGoalText = null;
+        }
         const anyNpcsAlreadyHere = npcDistancesToGoal.some(dist => dist <= 0);
         this.scene.stop("RacingScene");
         // this.scene.get("RacingScene").scene.pause();

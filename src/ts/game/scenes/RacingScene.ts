@@ -67,12 +67,12 @@ export default class RacingScene extends Scene {
         super("RacingScene");
     }
 
-    preload() {
-        this.lanes = [];
-        this.npcWizards = [];
-    }
+    preload() {}
 
     create() {
+        this.lanes = [];
+        this.npcWizards = [];
+
         this._drawLanes();
         this._drawWizards();
         this._placeObstacles();
@@ -86,6 +86,12 @@ export default class RacingScene extends Scene {
         });
         this.events.on("castShield", () => {
             this._onWizardCastShield(this.playerWizard);
+        });
+
+        this.events.once("shutdown", () => {
+            this.events.removeAllListeners("castDash");
+            this.events.removeAllListeners("castBolt");
+            this.events.removeAllListeners("castShield");
         });
     }
 
@@ -253,14 +259,12 @@ export default class RacingScene extends Scene {
     };
 
     _onWizardCastDash = (wizard: BaseWizard) => {
-        wizard.dash(
-            () => {
-                this._onWizardStartRun(wizard, wizard.movingDirection);
-            },
-            () => {
+        const callback = () => {
+            if (wizard.movingDirection != null) {
                 this._onWizardStartRun(wizard, wizard.movingDirection);
             }
-        );
+        };
+        wizard.dash(callback, callback);
     };
 
     _onWizardCastBolt = (wizard: BaseWizard) => {
