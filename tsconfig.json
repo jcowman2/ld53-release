@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "allowJs": true,
+        "esModuleInterop": true,
+        "downlevelIteration": true
+    },
+    "include": ["./src/**/*"],
+    "exclude": ["./node_modules"]
+}
